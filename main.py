@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
 import yaml
+import json
 import requests
-
+import re
+from parsel import Selector
 
 # class Cache:
 
@@ -35,6 +37,12 @@ class SitesCollection:
 
 
 class Parser:
+
+    headers = {
+        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.146 Safari/537.36',
+    }
+
     def __init__(self, data: dict, sites: SitesCollection):
         self.data = data
         self.sites = sites
@@ -45,51 +53,86 @@ class Parser:
             iterator += 1
 
             if 'id' not in product:
-                print('Product ID not found. Iteration: {}'.format(iterator))
+                product['error'] = error('Product ID not found. Iteration: {}'.format(iterator))
                 continue
 
             if 'links' not in product:
-                print("Product ID: {}: Key 'links' not found".format(product['id']))
+                product['error'] = error("Product ID: {}: Key 'links' not found".format(product['id']))
                 continue
 
             for link in product['links']:
                 if 'shop' not in link:
-                    print("Product ID: {}: Key 'shop' not found".format(product['id']))
+                    link['error'] = error("Product ID: {}: Key 'shop' not found".format(product['id']))
                     continue
 
                 site = self.sites.get_site(link['shop'])
 
                 if site is None:
-                    print("Product ID: {}: Shop not found for {}".format(product['id'], link['shop']))
+                    link['error'] = error("Product ID: {}: Shop not found for {}".format(product['id'], link['shop']))
                     continue
 
                 if 'link' not in link:
-                    print("Product ID: {}. Shop: {}. Key 'link' not found".format(product['id'], link['shop']))
+                    link['error'] = error("Product ID: {}. Shop: {}. Key 'link' not found".format(product['id'], link['shop']))
                     continue
 
                 price = self.get_price(link['link'], site)
-                exit()
+                try:
+                    debug("Product ID: {}. Shop: {}. Link: {} . Price was found: {}".format(product['id'], link['shop'], link['link'], price))
+                    link['price'] = price
+                except:
+                    link['price'] = None
+                    link['error'] = error("Product ID: {}. Shop: {}. PRICE NOT FOUND!".format(product['id'], link['shop']))
 
         return self.data
 
     def get_price(self, link: str, site: Site):
-        print(link, site)
+        page = requests.get(link, headers=self.headers)
+        selector = Selector(page.text)
+        elm = selector.css(site.selector)
+
+        if site.attribute is not None:
+            price = elm.attrib[site.attribute]
+        else:
+            price = elm.css('::text').get()
+
+        return self.prepare_price(str(price))
+
+    def prepare_price(self, price: str):
+        price = re.sub(r'[^0-9,.]', '', price)
+        if price.find('.') > 0:
+            return float(price)
+        return int(price)
+
+
+def error(text: str):
+    # Logging TODO
+    print(text)
+    return text
+
+
+def debug(text: str):
+    # Logging TODO
+    print(text)
+    return text
 
 
 if __name__ == '__main__':
 
     # Read config
     stream = open('./config.yml')
-    config = yaml.safe_load(stream)
+    config = yaml.unsafe_load(stream)
 
     # Prepare sites collection config
     sites_collection = SitesCollection(config['sites'])
 
     # Download schema
-    response = requests.request('get', config['urls']['get'])
+    response = requests.get(config['urls']['get'])
 
     data = response.json()
 
     parser = Parser(data['products'], sites_collection)
     result = parser.run()
 
+    # Send response
+    requests.post(config['urls']['set'], json=result)
+    print(json.dumps(result, indent=4))
