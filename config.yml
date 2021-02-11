@@ -1,0 +1,34 @@
+
+urls:
+  get: "http://localhost:5000/get"
+  set: "http://localhost:5000/set"
+
+sites:
+  - site: prom.ua
+    selector: [data-qaid="product_price"]
+    attribute: data-qaprice
+  - site: market.ua
+    selector: [data-price]
+  - site: https://motostyle.ua/
+    selector:
+  - site: https://motakuji.com.ua/
+    selector:
+  - site: https://prom.ua/
+    selector:
+  - site: https://bikermarket.com.ua/
+    selector:
+  - site: https://rsvmoto.com.ua/
+    selector:
+  - site: https://moto-motion.com.ua/
+    selector:
+  - site: https://www.begemoto.com/
+    selector:
+  - site: https://motoexpress.com.ua/
+    selector:
+  - site: https://www.motokontakt.com.ua/
+    selector:
+  - site: https://motoelit.com.ua/
+    selector:
+  - site: https://motoskarb.com.ua/
+    selector:
+
