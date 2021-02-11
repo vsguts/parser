@@ -1,0 +1,83 @@
+{
+  "products": [
+    {
+      "id": "UID1-TEST",
+      "links": [
+        {
+          "shop": "https://motostyle.ua/",
+          "link": "https://motostyle.ua/motoshlem-shoei-neotec-2-excursion-tc-5-l"
+        },
+        {
+          "shop": "https://motakuji.com.ua/",
+          "link": "https://motakuji.com.ua/motokyrtki/motokurtka-icon-merc-black"
+        },
+        {
+          "shop": "https://prom.ua/",
+          "link": "https://prom.ua/p1304119290-plate-rubashka-korsetom.html?"
+        },
+        {
+          "shop": "https://bikermarket.com.ua/",
+          "link": "https://bikermarket.com.ua/p231329908-krokodily-oxford-maximiser.html"
+        },
+        {
+          "shop": "https://rsvmoto.com.ua/",
+          "link": "https://rsvmoto.com.ua/catalog/motoperchatki/perchatki-dlya-motokrossa/8351/?oid=8352"
+        },
+        {
+          "shop": "https://moto-motion.com.ua/",
+          "link": "https://moto-motion.com.ua/derzhatel-dlya-telefona-extremestyle-r2-metal/"
+        },
+        {
+          "shop": "https://www.begemoto.com/",
+          "link": "https://www.begemoto.com/motocikl/obves-6/kryshka-benzobaka/kryshka-baka-yamaha-yzf600-yzf1000-fz6"
+        },
+        {
+          "shop": "https://motoexpress.com.ua/",
+          "link": "https://motoexpress.com.ua/maxima/5389-maxima-formula-k2-injector-2-kh-taktnoe-motornoe-maslo.html"
+        },
+        {
+          "shop": "https://www.motokontakt.com.ua/",
+          "link": "https://www.motokontakt.com.ua/raskhodniki/privodnye-tsepi/glavnaya-peredacha-privodnye-tsepi/privodnaya-tsep-ek-520srx2-110.html"
+        },
+        {
+          "shop": "https://motoelit.com.ua/",
+          "link": "https://motoelit.com.ua/akb-moto-ytx-5l-bs-maxion-12v-5a-11370105-mm/"
+        },
+        {
+          "shop": "https://motoskarb.com.ua/",
+          "link": "https://motoskarb.com.ua/p260645804-motoakustika-aoveise-mt487.html"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "links": [
+        {
+          "shop": "https://motostyle.ua/",
+          "link": "https://motostyle.ua/motoshlem-shoei-gt-air-2-affair-tc-1-m"
+        },
+        {
+          "shop": "https://motakuji.com.ua/",
+          "link": "https://motakuji.com.ua/moto-zashhita-kolenei/motonakolenniki-scoyco-k16-black"
+        },
+        {
+          "shop": "https://motoexpress.com.ua/",
+          "link": "https://motoexpress.com.ua/maxima/5393-maxima-premium-2-2-kh-taknoe-maslo.html"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "links": [
+        {
+          "shop": "https://motakuji.com.ua/",
+          "link": "https://motakuji.com.ua/motokyrtki/motokurtka-icon-merc-black"
+        },
+        {
+          "shop": "https://motoelit.com.ua/",
+          "link": "https://motoelit.com.ua/ytz7s-bs-4-ride-agm-12v-6ah-130a-r-113x70x105mm/"
+        }
+      ]
+    }
+  ]
+}
