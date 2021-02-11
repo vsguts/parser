@@ -4,31 +4,45 @@ urls:
   set: "http://localhost:5000/set"
 
 sites:
-  - site: prom.ua
-    selector: [data-qaid="product_price"]
-    attribute: data-qaprice
-  - site: market.ua
-    selector: [data-price]
+
   - site: https://motostyle.ua/
-    selector:
+    selector: '[itemprop="price"]'
+    attribute: content
+
   - site: https://motakuji.com.ua/
-    selector:
+    selector: '[property="product:price:amount"]'
+    attribute: content
+
   - site: https://prom.ua/
-    selector:
+    selector: '[data-qaid="product_price"]'
+    attribute: data-qaprice
+
   - site: https://bikermarket.com.ua/
-    selector:
+    selector: '[data-qaid="product_price"]'
+
   - site: https://rsvmoto.com.ua/
-    selector:
+    selector: '[itemprop="price"]'
+    attribute: content
+
   - site: https://moto-motion.com.ua/
-    selector:
+    selector: '[property="product:price:amount"]'
+    attribute: content
+
   - site: https://www.begemoto.com/
-    selector:
+    selector: '[class="old-prices"]'
+
   - site: https://motoexpress.com.ua/
-    selector:
+    selector: '[property="product:price:amount"]'
+    attribute: content
+
   - site: https://www.motokontakt.com.ua/
-    selector:
+    selector: '[class="prod-price"]'
+
   - site: https://motoelit.com.ua/
-    selector:
+    selector: '[property="product:price:amount"]'
+    attribute: content
+
   - site: https://motoskarb.com.ua/
-    selector:
+    selector: '[data-price-in-default-currency]'
+    attribute: data-price-in-default-currency
 
