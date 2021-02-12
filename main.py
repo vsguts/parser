@@ -67,31 +67,31 @@ class Parser:
             iterator += 1
 
             if 'id' not in product:
-                product['error'] = 'Product ID not found. Iteration: {}'.format(iterator)
-                logging.error(product['error'])
+                logging.error('Product ID not found. Iteration: {}'.format(iterator))
+                product['error'] = 'Product ID not found'
                 continue
 
             if 'links' not in product:
-                product['error'] = "Product ID: {}: Key 'links' not found".format(product['id'])
-                logging.error(product['error'])
+                logging.error("Product ID: {}: Key 'links' not found".format(product['id']))
+                product['error'] = "Key 'links' not found"
                 continue
 
             for link in product['links']:
                 if 'shop' not in link:
-                    link['error'] = "Product ID: {}: Key 'shop' not found".format(product['id'])
-                    logging.error(link['error'])
+                    logging.error("Product ID: {}: Key 'shop' not found".format(product['id']))
+                    link['error'] = "Key 'shop' not found"
                     continue
 
                 site = self.sites.get_site(link['shop'])
 
                 if site is None:
-                    link['error'] = "Product ID: {}: Shop not found for {}".format(product['id'], link['shop'])
-                    logging.error(link['error'])
+                    logging.error("Product ID: {}: Shop not found for {}".format(product['id'], link['shop']))
+                    link['error'] = 'Shop not found'
                     continue
 
                 if 'link' not in link:
-                    link['error'] = "Product ID: {}. Shop: {}. Key 'link' not found".format(product['id'], link['shop'])
-                    logging.error(link['error'])
+                    logging.error("Product ID: {}. Shop: {}. Key 'link' not found".format(product['id'], link['shop']))
+                    link['error'] = "Key 'link' not found"
                     continue
 
                 try:
@@ -99,9 +99,9 @@ class Parser:
                     logging.info("Product ID: {}. Shop: {}. Link: {} . Price was found: {}".format(product['id'], link['shop'], link['link'], price))
                     link['price'] = price
                 except Exception as e:
+                    logging.error("Product ID: {}. Shop: {}. PRICE NOT FOUND!".format(product['id'], link['shop']), exc_info=True)
                     link['price'] = None
-                    link['error'] = "Product ID: {}. Shop: {}. PRICE NOT FOUND!".format(product['id'], link['shop'])
-                    logging.error(link['error'], exc_info=True)
+                    link['error'] = 'PRICE NOT FOUND!'
 
         return self.data
 

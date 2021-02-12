@@ -76,6 +76,50 @@
         {
           "shop": "https://motoelit.com.ua/",
           "link": "https://motoelit.com.ua/ytz7s-bs-4-ride-agm-12v-6ah-130a-r-113x70x105mm/"
+        },
+        {
+          "shop": "https://broken-shop.example.com/",
+          "link": "https://motoexpress.com.ua/maxima/5393-maxima-premium-2-2-kh-taknoe-maslo.html"
+        },
+        {
+          "shop": "https://motoexpress.com.ua/",
+          "link": "https://motoexpress.com.ua/broken-link.html"
+        }
+      ]
+    },
+    {
+      "broken-id": 3,
+      "links": [
+        {
+          "shop": "https://broken-shop.example.com/",
+          "link": "https://motoexpress.com.ua/maxima/5393-maxima-premium-2-2-kh-taknoe-maslo.html"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "broken-links": [
+        {
+          "shop": "https://broken-shop.example.com/",
+          "link": "https://motoexpress.com.ua/maxima/5393-maxima-premium-2-2-kh-taknoe-maslo.html"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "links": [
+        {
+          "broken-shop": "https://motoexpress.com.ua/",
+          "link": "https://motoexpress.com.ua/maxima/5393-maxima-premium-2-2-kh-taknoe-maslo.html"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "links": [
+        {
+          "shop": "https://motoexpress.com.ua/",
+          "broken-link": "https://motoexpress.com.ua/maxima/5393-maxima-premium-2-2-kh-taknoe-maslo.html"
         }
       ]
     }
