@@ -23,7 +23,6 @@ def get():
 @app.route('/set', methods=['POST'])
 def save():
 
-    # Binary option
     data = request.data
     file = open('result.json', 'w+b')
 
