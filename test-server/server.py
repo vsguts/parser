@@ -22,9 +22,6 @@ def get():
 
 @app.route('/set', methods=['POST'])
 def save():
-    # Parse json option
-    # data = json.dumps(request.json)
-    # file = open('result.json', 'w')
 
     # Binary option
     data = request.data
