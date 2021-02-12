@@ -5,8 +5,22 @@ import json
 import requests
 import re
 from parsel import Selector
+import logging
+from logging import handlers
 
-# class Cache:
+
+# Logging setting up
+
+file = handlers.TimedRotatingFileHandler('logs/log', when='M', interval=1, backupCount=2)
+file.setLevel(logging.DEBUG)
+file.setFormatter(logging.Formatter('%(process)d %(asctime)s %(levelname)s - %(message)s'))
+
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+console.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
+
+logging.basicConfig(handlers=[file, console], level=logging.DEBUG)
+
 
 class Site:
     def __init__(self, site, selector, attribute=None):
@@ -53,35 +67,41 @@ class Parser:
             iterator += 1
 
             if 'id' not in product:
-                product['error'] = error('Product ID not found. Iteration: {}'.format(iterator))
+                product['error'] = 'Product ID not found. Iteration: {}'.format(iterator)
+                logging.error(product['error'])
                 continue
 
             if 'links' not in product:
-                product['error'] = error("Product ID: {}: Key 'links' not found".format(product['id']))
+                product['error'] = "Product ID: {}: Key 'links' not found".format(product['id'])
+                logging.error(product['error'])
                 continue
 
             for link in product['links']:
                 if 'shop' not in link:
-                    link['error'] = error("Product ID: {}: Key 'shop' not found".format(product['id']))
+                    link['error'] = "Product ID: {}: Key 'shop' not found".format(product['id'])
+                    logging.error(link['error'])
                     continue
 
                 site = self.sites.get_site(link['shop'])
 
                 if site is None:
-                    link['error'] = error("Product ID: {}: Shop not found for {}".format(product['id'], link['shop']))
+                    link['error'] = "Product ID: {}: Shop not found for {}".format(product['id'], link['shop'])
+                    logging.error(link['error'])
                     continue
 
                 if 'link' not in link:
-                    link['error'] = error("Product ID: {}. Shop: {}. Key 'link' not found".format(product['id'], link['shop']))
+                    link['error'] = "Product ID: {}. Shop: {}. Key 'link' not found".format(product['id'], link['shop'])
+                    logging.error(link['error'])
                     continue
 
-                price = self.get_price(link['link'], site)
                 try:
-                    debug("Product ID: {}. Shop: {}. Link: {} . Price was found: {}".format(product['id'], link['shop'], link['link'], price))
+                    price = self.get_price(link['link'], site)
+                    logging.info("Product ID: {}. Shop: {}. Link: {} . Price was found: {}".format(product['id'], link['shop'], link['link'], price))
                     link['price'] = price
-                except:
+                except Exception as e:
                     link['price'] = None
-                    link['error'] = error("Product ID: {}. Shop: {}. PRICE NOT FOUND!".format(product['id'], link['shop']))
+                    link['error'] = "Product ID: {}. Shop: {}. PRICE NOT FOUND!".format(product['id'], link['shop'])
+                    logging.error(link['error'], exc_info=True)
 
         return self.data
 
@@ -104,18 +124,6 @@ class Parser:
         return int(price)
 
 
-def error(text: str):
-    # Logging TODO
-    print(text)
-    return text
-
-
-def debug(text: str):
-    # Logging TODO
-    print(text)
-    return text
-
-
 if __name__ == '__main__':
 
     # Read config
@@ -125,14 +133,19 @@ if __name__ == '__main__':
     # Prepare sites collection config
     sites_collection = SitesCollection(config['sites'])
 
-    # Download schema
+    # Download products
     response = requests.get(config['urls']['get'])
-
     data = response.json()
 
+    # Start parsing process
     parser = Parser(data['products'], sites_collection)
-    result = parser.run()
+    data['products'] = parser.run()
 
-    # Send response
-    requests.post(config['urls']['set'], json=result)
-    print(json.dumps(result, indent=4))
+    # print(json.dumps(data, indent=4))
+
+    # Send result
+    result = requests.post(config['urls']['set'], json=data)
+    if result.status_code == 200:
+        logging.info('Result was sent Successfully')
+    else:
+        logging.error('Result was not sent!')
