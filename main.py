@@ -4,6 +4,7 @@ import yaml
 import json
 import requests
 import re
+import os
 from parsel import Selector
 import logging
 from logging import handlers
@@ -124,6 +125,32 @@ class Parser:
         return int(price)
 
 
+class Cache:
+    path = 'cache.json'
+    def save(self, data):
+        try:
+            file = open(self.path, 'w')
+            file.write(json.dumps(data))
+        except IOError:
+            logging.error('Can not save cache')
+        finally:
+            file.close()
+
+    def load(self):
+        try:
+            file = open(self.path)
+            content = file.read()
+            file.close()
+            return json.loads(content)
+        except IOError:
+            print("Cache not exists")
+            return None
+
+    def clear(self):
+        if os.path.exists(self.path):
+            os.remove(self.path)
+
+
 if __name__ == '__main__':
 
     # Read config
@@ -133,9 +160,15 @@ if __name__ == '__main__':
     # Prepare sites collection config
     sites_collection = SitesCollection(config['sites'])
 
-    # Download products
-    response = requests.get(config['urls']['get'])
-    data = response.json()
+    # Check cache
+    cache = Cache().load()
+
+    if cache == None:
+        # Download products
+        response = requests.get(config['urls']['get'])
+        data = response.json()
+    else:
+        data = {'products': cache}
 
     # Start parsing process
     parser = Parser(data['products'], sites_collection)
@@ -147,5 +180,6 @@ if __name__ == '__main__':
     result = requests.post(config['urls']['set'], json=data)
     if result.status_code == 200:
         logging.info('Result was sent Successfully')
+        Cache().clear()
     else:
         logging.error('Result was not sent!')
