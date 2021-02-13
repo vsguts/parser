@@ -3,11 +3,13 @@
 import yaml
 import json
 import requests
+from requests.auth import HTTPBasicAuth
 import re
 import os
 from parsel import Selector
 import logging
 from logging import handlers
+from datetime import datetime
 
 
 # Logging setting up
@@ -51,6 +53,32 @@ class SitesCollection:
         return self.collection.get(key, None)
 
 
+class Requester:
+    def __init__(self, config: hash):
+        self.config = config
+        self.datetime = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+    def get(self):
+        config = self.config
+        response = requests.get(config['get'], auth=HTTPBasicAuth(config['login'], config['password']))
+        # return response.json()
+        # Bom Workaround: https://www.howtosolutions.net/2019/04/python-fixing-unexpected-utf-8-bom-error-when-loading-json-data/
+        # text = response.text.encode().decode('utf-8-sig')
+        text = response.content.decode('utf-8-sig')
+        self.backup('got', text)
+        return json.loads(text)
+
+    def save(self, data: hash):
+        self.backup('saved', json.dumps(data))
+        config = self.config
+        return requests.post(config['set'], json=data, auth=HTTPBasicAuth(config['login'], config['password']))
+
+    def backup(self, name: str, content: str):
+        file = open('storage/{}-{}.json'.format(self.datetime, name), 'w')
+        file.write(content)
+        file.close()
+
+
 class Parser:
 
     headers = {
@@ -61,6 +89,7 @@ class Parser:
     def __init__(self, data: dict, sites: SitesCollection):
         self.data = data
         self.sites = sites
+        self.cache = Cache()
 
     def run(self):
         iterator = 0
@@ -68,45 +97,56 @@ class Parser:
             iterator += 1
 
             if 'id' not in product:
-                logging.error('Product ID not found. Iteration: {}'.format(iterator))
+                logging.error('{}. Product ID not found. Iteration'.format(iterator))
                 product['error'] = 'Product ID not found'
                 continue
 
             if 'links' not in product:
-                logging.error("Product ID: {}: Key 'links' not found".format(product['id']))
+                logging.error("{}. Product ID: {}: Key 'links' not found".format(iterator, product['id']))
                 product['error'] = "Key 'links' not found"
                 continue
 
+            iterator2 = 0
             for link in product['links']:
+                iterator2 += 1
+                if 'price' in link or 'error' in link:
+                    continue
+
                 if 'shop' not in link:
-                    logging.error("Product ID: {}: Key 'shop' not found".format(product['id']))
+                    logging.error("{}.{}. Product ID: {}: Key 'shop' not found".format(iterator, iterator2, product['id']))
                     link['error'] = "Key 'shop' not found"
+                    self.cache.save(self.data)
                     continue
 
                 site = self.sites.get_site(link['shop'])
 
                 if site is None:
-                    logging.error("Product ID: {}: Shop not found for {}".format(product['id'], link['shop']))
+                    logging.error("{}.{}. Product ID: {}: Shop not found for {}".format(iterator, iterator2, product['id'], link['shop']))
                     link['error'] = 'Shop not found'
+                    self.cache.save(self.data)
                     continue
 
                 if 'link' not in link:
-                    logging.error("Product ID: {}. Shop: {}. Key 'link' not found".format(product['id'], link['shop']))
+                    logging.error("{}.{}. Product ID: {}. Shop: {}. Key 'link' not found".format(iterator, iterator2, product['id'], link['shop']))
                     link['error'] = "Key 'link' not found"
+                    self.cache.save(self.data)
                     continue
 
                 try:
-                    price = self.get_price(link['link'], site)
-                    logging.info("Product ID: {}. Shop: {}. Link: {} . Price was found: {}".format(product['id'], link['shop'], link['link'], price))
+                    price = self._get_price(link['link'], site)
+                    logging.info("{}.{}. Product ID: {}. Shop: {}. Link: {} . Price was found: {}".format(iterator, iterator2, product['id'], link['shop'], link['link'], price))
                     link['price'] = price
+                    self.cache.save(self.data)
+
                 except Exception as e:
-                    logging.error("Product ID: {}. Shop: {}. PRICE NOT FOUND!".format(product['id'], link['shop']), exc_info=True)
+                    logging.error("{}.{}. Product ID: {}. Shop: {}. PRICE NOT FOUND!".format(iterator, iterator2, product['id'], link['shop']), exc_info=True)
                     link['price'] = None
                     link['error'] = 'PRICE NOT FOUND!'
+                    self.cache.save(self.data)
 
         return self.data
 
-    def get_price(self, link: str, site: Site):
+    def _get_price(self, link: str, site: Site):
         page = requests.get(link, headers=self.headers)
         selector = Selector(page.text)
         elm = selector.css(site.selector)
@@ -116,9 +156,9 @@ class Parser:
         else:
             price = elm.css('::text').get()
 
-        return self.prepare_price(str(price))
+        return self._prepare_price(str(price))
 
-    def prepare_price(self, price: str):
+    def _prepare_price(self, price: str):
         price = re.sub(r'[^0-9,.]', '', price)
         if price.find('.') > 0:
             return float(price)
@@ -126,24 +166,27 @@ class Parser:
 
 
 class Cache:
-    path = 'cache.json'
+    path = 'storage/cache.json'
+
     def save(self, data):
         try:
+            content = json.dumps(data)
             file = open(self.path, 'w')
-            file.write(json.dumps(data))
+            file.write(content)
+            file.close()
         except IOError:
             logging.error('Can not save cache')
-        finally:
-            file.close()
 
     def load(self):
         try:
-            file = open(self.path)
-            content = file.read()
-            file.close()
-            return json.loads(content)
+            if os.path.exists(self.path) and os.path.isfile(self.path):
+                file = open(self.path)
+                content = file.read()
+                file.close()
+                return json.loads(content)
+            return None
         except IOError:
-            print("Cache not exists")
+            logging.error('Error reading cache', exc_info=True)
             return None
 
     def clear(self):
@@ -154,7 +197,7 @@ class Cache:
 if __name__ == '__main__':
 
     # Read config
-    stream = open('./config.yml')
+    stream = open('config.yml')
     config = yaml.unsafe_load(stream)
 
     # Prepare sites collection config
@@ -162,11 +205,11 @@ if __name__ == '__main__':
 
     # Check cache
     cache = Cache().load()
+    requester = Requester(config['api'])
 
     if cache == None:
         # Download products
-        response = requests.get(config['urls']['get'])
-        data = response.json()
+        data = requester.get()
     else:
         data = {'products': cache}
 
@@ -177,9 +220,12 @@ if __name__ == '__main__':
     # print(json.dumps(data, indent=4))
 
     # Send result
-    result = requests.post(config['urls']['set'], json=data)
+    result = requester.save(data)
     if result.status_code == 200:
         logging.info('Result was sent Successfully')
         Cache().clear()
     else:
-        logging.error('Result was not sent!')
+        logging.error('RESULT WAS NOT SENT! ' + str({
+            'status_code': result.status_code,
+            'response': result.text[0:500]
+        }))

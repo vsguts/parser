@@ -1,7 +1,10 @@
 
-urls:
+api:
   get: "http://localhost:5000/get"
   set: "http://localhost:5000/set"
+  login: test
+  password: test
+
 
 sites:
 
