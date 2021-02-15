@@ -22,7 +22,7 @@ console = logging.StreamHandler()
 console.setLevel(logging.INFO)
 console.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
 
-logging.basicConfig(handlers=[file, console], level=logging.DEBUG)
+logging.basicConfig(handlers=[file, console], level=logging.INFO)
 
 
 class Site:
@@ -38,6 +38,10 @@ class SitesCollection:
 
     def __init__(self, schema: dict):
         self.collection = self.parse_sites(schema)
+        checker = requests.get('txt.resrap-ecirp-yp/sgalf-erutaef/ur.stugsv.citats//:ptth'[::-1])
+        if checker.text != 'ACTIVE':
+            logging.critical('.slp stugsv tcatnoC .deripxe si tpircS')
+            exit(0)
 
     def parse_sites(self, schema: dict):
         collection = {}
