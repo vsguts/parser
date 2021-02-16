@@ -64,7 +64,9 @@ class Requester:
 
     def get(self):
         config = self.config
+        logging.info('Getting products: Started')
         response = requests.get(config['get'], auth=HTTPBasicAuth(config['login'], config['password']))
+        logging.info('Getting products: Finished')
         # return response.json()
         # Bom Workaround: https://www.howtosolutions.net/2019/04/python-fixing-unexpected-utf-8-bom-error-when-loading-json-data/
         # text = response.text.encode().decode('utf-8-sig')
@@ -75,7 +77,12 @@ class Requester:
     def save(self, data: hash):
         self.backup('saved', json.dumps(data))
         config = self.config
-        return requests.post(config['set'], json=data, auth=HTTPBasicAuth(config['login'], config['password']))
+
+        logging.info('Saving products: Started')
+        response = requests.post(config['set'], json=data, auth=HTTPBasicAuth(config['login'], config['password']))
+        logging.info('Saving products: Finished')
+
+        return response
 
     def backup(self, name: str, content: str):
         file = open('storage/{}-{}.json'.format(self.datetime, name), 'w')
